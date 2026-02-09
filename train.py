@@ -144,7 +144,13 @@ def parse_args():
     parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument("--print_every", type=int, default=50)
 
+    parser.add_argument('--num_workers', type=int, default=4,
+                    help='Number of DataLoader worker processes')
+    parser.add_argument('--pin_memory', action='store_true',
+                    help='Pin CPU memory (recommended when using GPU)')
+
     parser.add_argument("--gpu", action="store_true", help="Use GPU (CUDA) if available.")
+    
     return parser.parse_args()
 
 
