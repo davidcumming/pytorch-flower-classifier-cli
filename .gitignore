@@ -24,3 +24,10 @@ assets/.DS_Store
 
 # Local test images
 *.jpg
+
+# Local data / models
+assets/
+*.pth
+.venv/
+__pycache__/
+.ipynb_checkpoints/
