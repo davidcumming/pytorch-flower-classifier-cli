@@ -4,10 +4,13 @@ import torch
 from torch import nn, optim
 
 from utils import get_device, get_data_transforms, load_datasets, get_dataloaders
-from model_utils import build_model_vgg16, save_checkpoint
+from model_utils import build_model, save_checkpoint
 
 
-def _fmt_time(seconds: float) -> str:
+def _fmt_time(seconds: float):
+    """
+    Format a duration in seconds into a human-readable string (e.g. 1m 12.3s).
+    """
     m, s = divmod(seconds, 60)
     h, m = divmod(int(m), 60)
     if h:
@@ -18,14 +21,15 @@ def _fmt_time(seconds: float) -> str:
 
 
 def train_one_model(args):
+    """
+    Train a model on the given dataset directory, evaluate on the test set,
+    and save a checkpoint using the chosen architecture and hyperparameters.
+    """
     device = get_device(args.gpu)
 
-    # Data
     data_transforms = get_data_transforms()
     image_datasets = load_datasets(args.data_dir, data_transforms)
 
-    # IMPORTANT: actually use args.num_workers and args.pin_memory
-    # (Assumes your utils.get_dataloaders accepts pin_memory; if not, see note below)
     dataloaders = get_dataloaders(
         image_datasets,
         batch_size=args.batch_size,
@@ -35,21 +39,26 @@ def train_one_model(args):
 
     num_classes = len(image_datasets["train"].classes)
 
-    if args.arch != "vgg16":
-        raise ValueError("This version supports only --arch vgg16 to match your notebook.")
-
-    model = build_model_vgg16(
-        num_classes=num_classes,
-        hidden_1=args.hidden_1,
-        hidden_2=args.hidden_2,
-        drop_p=args.drop_p,
+    model = build_model(
+        arch = args.arch,
+        num_classes = num_classes,
+        hidden_1 = args.hidden_1,
+        hidden_2 = args.hidden_2,
+        drop_p = args.drop_p,
     )
 
     model.class_to_idx = image_datasets["train"].class_to_idx
     model = model.to(device)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.classifier.parameters(), lr=args.learning_rate)
+    if args.arch == "vgg16":
+        params = model.classifier.parameters()
+    elif args.arch == "resnet18":
+        params = model.fc.parameters()
+    else:
+        raise ValueError(f"Unsupported architecture: {args.arch}")
+
+    optimizer = optim.Adam(params, lr=args.learning_rate)
 
     # Nice header
     print("\n" + "=" * 72)
@@ -194,11 +203,14 @@ def train_one_model(args):
 
 
 def parse_args():
+    """
+    Parse command-line arguments for configuring training.
+    """
     parser = argparse.ArgumentParser(description="Train an image classifier and save a checkpoint.")
     parser.add_argument("data_dir", type=str, help="Path to dataset directory (with train/valid/test).")
 
     parser.add_argument("--save_dir", type=str, default="./", help="Directory or filepath to save checkpoint.")
-    parser.add_argument("--arch", type=str, default="vgg16", help='Model architecture (only "vgg16" supported here).')
+    parser.add_argument("--arch", type=str, default="vgg16", help='Model architecture: "vgg16" or "resnet18".')
 
     parser.add_argument("--learning_rate", type=float, default=0.001)
     parser.add_argument("--hidden_1", type=int, default=512)

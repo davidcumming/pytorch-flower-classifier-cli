@@ -8,16 +8,19 @@ from model_utils import load_checkpoint
 
 
 def predict(image_path: str, model, device: torch.device, topk: int = 5):
+    """
+    Predict the top-K classes for a single image.
+    Returns (probabilities, classes).
+    """
 
-    model = model.to(device)
     model.eval()
 
-    img_tensor = process_image(image_path)
-    img_tensor = img_tensor.unsqueeze(0).to(device)
+    img_tensor = process_image(image_path, add_batch_dim=True).to(device)
 
     with torch.no_grad():
-        outputs = model(img_tensor)                 # logits
-        probabilities = F.softmax(outputs, dim=1)           # probabilities
+        outputs = model(img_tensor)
+        probabilities = F.softmax(outputs, dim=1)
+        topk = min(topk, probabilities.size(1))
         top_probabilities, top_indices = probabilities.topk(topk, dim=1)
 
     top_probabilities = top_probabilities[0].cpu().tolist()
@@ -46,6 +49,7 @@ if __name__ == "__main__":
     device = get_device(args.gpu)
 
     model, _ = load_checkpoint(args.checkpoint, device=device)
+    model = model.to(device)
 
     probabilities, classes = predict(args.image_path, model, device=device, topk=args.top_k)
 

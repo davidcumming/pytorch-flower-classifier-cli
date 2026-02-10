@@ -1,4 +1,3 @@
-# utils.py
 import json
 from pathlib import Path
 from PIL import Image
@@ -7,7 +6,7 @@ import torch
 from torchvision import datasets, transforms
 
 
-def get_device(use_gpu: bool) -> torch.device:
+def get_device(use_gpu: bool):
     """
     Use CUDA if available (when requested), else CPU.
     """
@@ -16,7 +15,7 @@ def get_device(use_gpu: bool) -> torch.device:
     return torch.device("cpu")
 
 
-def get_data_transforms() -> dict:
+def get_data_transforms():
     """
     Standard transforms for the Oxford 102 Flowers dataset (ImageNet normalization).
     """
@@ -46,7 +45,13 @@ def get_data_transforms() -> dict:
     }
 
 
-def load_datasets(data_dir: str, data_transforms: dict) -> dict:
+def load_datasets(data_dir: str, data_transforms: dict):
+    """
+    Load train/valid/test datasets from a directory structured for ImageFolder:
+      data_dir/train/<class>/*.jpg
+      data_dir/valid/<class>/*.jpg
+      data_dir/test/<class>/*.jpg
+    """
     data_dir = Path(data_dir)
     train_dir = data_dir / "train"
     valid_dir = data_dir / "valid"
@@ -101,7 +106,7 @@ def get_dataloaders(
     }
 
 
-def process_image(image_path: str, add_batch_dim: bool = True) -> torch.Tensor:
+def process_image(image_path: str, add_batch_dim: bool = True):
     """
     Convert a PIL image into a normalized tensor suitable for model input.
     If add_batch_dim=True, returns shape [1, 3, 224, 224] (ready for inference).
@@ -123,6 +128,9 @@ def process_image(image_path: str, add_batch_dim: bool = True) -> torch.Tensor:
     return image_tensor
 
 
-def load_category_names(json_path: str) -> dict:
+def load_category_names(json_path: str):
+    """
+    Load a JSON mapping of class labels to human-readable names (e.g., cat_to_name.json).
+    """
     with open(json_path, "r") as f:
         return json.load(f)
