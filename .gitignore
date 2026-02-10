@@ -12,22 +12,14 @@ aipnd/
 env/
 venv/
 
-# Data / assets (do NOT commit dataset)
-assets/flower_data/
-assets/*.tar
-assets/*.mat
-assets/segmim/
-assets/.DS_Store
+# Data / assets (do NOT commit dataset or raw downloads)
+assets/
+!assets/.keep
+
+# Dataset archives / MATLAB metadata
+*.tgz
+*.tar
+*.mat
 
 # Model checkpoints
 *.pth
-
-# Local test images
-*.jpg
-
-# Local data / models
-assets/
-*.pth
-.venv/
-__pycache__/
-.ipynb_checkpoints/
